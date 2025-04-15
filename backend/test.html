@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Test Backend Endpoint</title>
+</head>
+<body style="background-color: #f7fafc; color: #2d3748; padding: 24px;">
+  <div style="max-width: 768px; margin: 0 auto;">
+    <h1 style="font-size: 2rem; font-weight: bold; margin-bottom: 24px; text-align: center;">Test POST Request</h1>
+    
+    <div style="margin-bottom: 16px; display: flex; gap: 16px;">
+      <button 
+        id="sendRequest" 
+        style="background-color: #4299e1; color: #fff; font-weight: bold; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;"
+      >
+        Send Request
+      </button>
+      <button 
+        id="runTests" 
+        style="background-color: #48bb78; color: #fff; font-weight: bold; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;"
+      >
+        Run Default Test Cases
+      </button>
+    </div>
+    
+    <div style="margin-bottom: 24px;">
+      <h2 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 8px;">Single Request Output:</h2>
+      <pre 
+        id="output" 
+        style="background-color: white; padding: 16px; border: 1px solid #e2e8f0; border-radius: 4px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);"
+      ></pre>
+    </div>
+    
+    <div>
+      <h2 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 8px;">Default Test Cases Output:</h2>
+      <pre 
+        id="output-tests" 
+        style="background-color: white; padding: 16px; border: 1px solid #e2e8f0; border-radius: 4px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);"
+      ></pre>
+    </div>
+  </div>
+
+  <script>
+    // Single request test
+    document.getElementById("sendRequest").addEventListener("click", () => {
+      fetch("http://localhost:8000/query", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: "user123",
+          query: "What type of life insurance is best for families?",
+          context_data: { income: 75000, family_size: 4 }
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        // Only update the single output container.
+        document.getElementById("output").innerText = JSON.stringify(data, null, 2);
+      })
+      .catch(error => {
+        document.getElementById("output").innerText = "Error: " + error;
+      });
+    });
+
+    // Default test cases
+    document.getElementById("runTests").addEventListener("click", async () => {
+      const testCases = [
+        {
+          user_id: "user123",
+          query: "What type of life insurance is best for families?",
+          context_data: { income: 75000, family_size: 4 }
+        },
+        {
+          user_id: "user456",
+          query: "Can I get a life insurance discount on my premium?",
+          context_data: { income: 85000, family_size: 3 }
+        },
+        {
+          user_id: "user789",
+          query: "Is term life insurance cheaper than whole life insurance?",
+          context_data: { income: 65000, family_size: 2 }
+        },
+        {
+          user_id: "user999",
+          query: "Do you recommend life insurance for seniors?",
+          context_data: { income: 50000, family_size: 1 }
+        }
+      ];
+
+      const outputTests = document.getElementById("output-tests");
+      outputTests.innerText = "Running default test cases...\n\n";
+
+      for (let i = 0; i < testCases.length; i++) {
+        try {
+          const res = await fetch("http://localhost:8000/query", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(testCases[i])
+          });
+          const data = await res.json();
+          outputTests.innerText += `Test Case ${i + 1}:\nInput:\n${JSON.stringify(testCases[i], null, 2)}\n\nOutput:\n${JSON.stringify(data, null, 2)}\n\n-------------------------\n\n`;
+        } catch (error) {
+          outputTests.innerText += `Test Case ${i + 1}:\nInput:\n${JSON.stringify(testCases[i], null, 2)}\n\nError: ${error}\n\n-------------------------\n\n`;
+        }
+      }
+    });
+  </script>
+</body>
+</html> 
